@@ -24,7 +24,7 @@ u64* walk_to_pte_child(struct exec_context *current,u64 addr){
             if (pfn == 0){
                 return NULL;
             }
-            printk("the pfn in pgd allocate is %x\n", pfn);
+            // printk("the pfn in pgd allocate is %x\n", pfn);
             pgd_t = (pfn << 12)|(pgd_t & 0xFFF);
             pgd_t = pgd_t | 16 | 8 | 1;
         }
@@ -32,12 +32,12 @@ u64* walk_to_pte_child(struct exec_context *current,u64 addr){
         u64* pud = (u64*)osmap(pgd_t>>12);
         u64 pud_t = *(pud+pud_offset);
         if ((pud_t&1) == 0){ //present bit is 0
-            printk("entering pud\n");
+            // printk("entering pud\n");
             u64 pfn = (u64)os_pfn_alloc(OS_PT_REG);
             if (pfn == 0){
                 return NULL;
             }
-            printk("the pfn in pud allocate is %x\n", pfn);
+            // printk("the pfn in pud allocate is %x\n", pfn);
             pud_t = (pfn << 12)|(pud_t & 0xFFF);
             pud_t = pud_t | 16 | 8 | 1;
         }
@@ -45,12 +45,12 @@ u64* walk_to_pte_child(struct exec_context *current,u64 addr){
         u64* pmd = (u64*)osmap(pud_t>>12);
         u64 pmd_t = *(pmd+pmd_offset);
         if ((pmd_t&1 )== 0){ //present bit is 0
-            printk("entering pmd\n");
+            // printk("entering pmd\n");
             u64 pfn =(u64) os_pfn_alloc(OS_PT_REG);
             if (pfn == 0){
                 return NULL;
             }
-            printk("the pfn in pmd allocate is %x\n", pfn);
+            // printk("the pfn in pmd allocate is %x\n", pfn);
             pmd_t = (pfn << 12)|(pmd_t & 0xFFF);
             pmd_t = pmd_t | 16 | 8 | 1;
         }
@@ -256,7 +256,7 @@ long vm_area_mprotect(struct exec_context *current, u64 addr, int length, int pr
  */
 long vm_area_map(struct exec_context *current, u64 addr, int length, int prot, int flags)
 {   
-     printk("mmap called \n");
+    //  printk("mmap called \n");
     // scan the linked list of VMAs, to find the
     // appropriate position in the linked list where a new vm area node can be added or an existing vm area
     // node can be expanded.
@@ -305,7 +305,7 @@ long vm_area_map(struct exec_context *current, u64 addr, int length, int prot, i
         new_vma1->access_flags = prot;
         new_vma1->vm_next = NULL;
         vma->vm_next = new_vma1;
-        printk("mmap ended\n");
+        // printk("mmap ended\n");
 
         return new_vma1->vm_start;
     }
@@ -313,7 +313,7 @@ long vm_area_map(struct exec_context *current, u64 addr, int length, int prot, i
     //if vma is not initially null then 
     // i) if hint address specified,
     if (addr!= 0){
-        printk("hint address is not null\n");
+        // printk("hint address is not null\n");
         struct vm_area *traverse = vma;
         int flag = 0; //if flag = 1 then hint address is invalid
         while(traverse!=NULL){
@@ -364,7 +364,7 @@ long vm_area_map(struct exec_context *current, u64 addr, int length, int prot, i
                     stats->num_vm_area--;
                     new_vma = NULL;
                 }
-                printk("mmap ended\n");
+                // printk("mmap ended\n");
                 return ret_addr;
             }
             //so we have to insert new node between prev and trav2
@@ -402,19 +402,19 @@ long vm_area_map(struct exec_context *current, u64 addr, int length, int prot, i
                 stats->num_vm_area--;
                 trav2 = NULL;
             }
-            printk("mmap ended\n");
+            // printk("mmap ended\n");
             return addr;
         }
     }
     // ii) if hint address is not specified
-    printk("hint address is null\n");
+    // printk("hint address is null\n");
     struct vm_area *traverse = vma->vm_next;
     struct vm_area *prev = vma;
     //we can insert new node between prev and traverse so traverse->vm_start - prev->vm_end should be greater than length
     while(traverse!=NULL){
         if (traverse->vm_start - prev->vm_end >= length){
-            printk("found space between %x and %x, %x, length = %d\n", prev->vm_end, traverse->vm_start, 
-            traverse->vm_start - prev->vm_end, length);
+            // printk("found space between %x and %x, %x, length = %d\n", prev->vm_end, traverse->vm_start, 
+            // traverse->vm_start - prev->vm_end, length);
             break;
         }
         prev = traverse;
@@ -445,7 +445,7 @@ long vm_area_map(struct exec_context *current, u64 addr, int length, int prot, i
                     stats->num_vm_area--;
                     new_vma = NULL;
         }
-        printk("mmap ended\n");
+        // printk("mmap ended\n");
         return ret_addr;
     }
     //so we have to insert new node between prev and traverse
@@ -484,7 +484,7 @@ long vm_area_map(struct exec_context *current, u64 addr, int length, int prot, i
         stats->num_vm_area--;
         traverse = NULL;
     }
-    printk("mmap ended\n");
+    // printk("mmap ended\n");
     return ret_addr;
    
     // return -EINVAL;
@@ -497,7 +497,7 @@ long vm_area_map(struct exec_context *current, u64 addr, int length, int prot, i
 
 long vm_area_unmap(struct exec_context *current, u64 addr, int length)
 {   
-     printk("munmap called \n");
+    //  printk("munmap called \n");
     length = (length + 4095) & ~4095; //making length multiples of 4KB
     struct vm_area *vma = current->vm_area;
     
@@ -571,7 +571,7 @@ long vm_area_unmap(struct exec_context *current, u64 addr, int length)
 
 long vm_area_pagefault(struct exec_context *current, u64 addr, int error_code)
 {   
-    printk("entered vm_area_pagefault with addr = %x and error code = %x\n",addr, error_code);
+    // printk("entered vm_area_pagefault with addr = %x and error code = %x\n",addr, error_code);
     //finding the vm area node in which the address belongs
     struct vm_area *vma = current->vm_area;
     struct vm_area *trav = vma->vm_next;
@@ -585,15 +585,15 @@ long vm_area_pagefault(struct exec_context *current, u64 addr, int error_code)
         return -1;
     }
     if (error_code == 0x6 && trav->access_flags == PROT_READ){
-        printk("returned from here 1");
+        // printk("returned from here 1");
         return -1;
     }
     if (error_code == 0x7 && trav->access_flags == PROT_READ){
-        printk("returned from here 2");
+        // printk("returned from here 2");
         return -1;
     }
     if (error_code!=0x4 && error_code!=0x6 && error_code!=0x7){
-        printk("returned from here 3");
+        // printk("returned from here 3");
         return -1;
     }
     //break the addr into 4*9 + 12 bits
@@ -602,10 +602,10 @@ long vm_area_pagefault(struct exec_context *current, u64 addr, int error_code)
     u64 pmd_offset = (addr >> 21) & 0x1FF;
     u64 pte_offset = (addr >> 12) & 0x1FF;
     u64 physical_frame_offset = addr & 0xFFF;
-    printk("pgd_offset = %x, pud_offset = %x, pmd_offset = %x, pte_offset = %x, physical_frame_offset = %x\n", pgd_offset, pud_offset, pmd_offset, pte_offset, physical_frame_offset);
+    // printk("pgd_offset = %x, pud_offset = %x, pmd_offset = %x, pte_offset = %x, physical_frame_offset = %x\n", pgd_offset, pud_offset, pmd_offset, pte_offset, physical_frame_offset);
     //check the access flags of the node with the access asked by the process
     if (error_code == 0x4 || error_code == 0x6){ //read access or write
-       printk("entered here 1\n");
+    //    printk("entered here 1\n");
         u64* pgd = (u64*)osmap(current->pgd);
         u64 pgd_t = *(pgd+pgd_offset);
         if ((pgd_t&1) == 0){ //present bit is 0
@@ -613,7 +613,7 @@ long vm_area_pagefault(struct exec_context *current, u64 addr, int error_code)
             if (pfn == 0){
                 return -1;
             }
-            printk("the pfn in pgd allocate is %x\n", pfn);
+            // printk("the pfn in pgd allocate is %x\n", pfn);
             pgd_t = (pfn << 12)|(pgd_t & 0xFFF);
             pgd_t = pgd_t | 16 | 8 | 1;
         }
@@ -621,12 +621,12 @@ long vm_area_pagefault(struct exec_context *current, u64 addr, int error_code)
         u64* pud = (u64*)osmap(pgd_t>>12);
         u64 pud_t = *(pud+pud_offset);
         if ((pud_t&1) == 0){ //present bit is 0
-            printk("entering pud\n");
+            // printk("entering pud\n");
             u64 pfn = (u64)os_pfn_alloc(OS_PT_REG);
             if (pfn == 0){
                 return -1;
             }
-            printk("the pfn in pud allocate is %x\n", pfn);
+            // printk("the pfn in pud allocate is %x\n", pfn);
             pud_t = (pfn << 12)|(pud_t & 0xFFF);
             pud_t = pud_t | 16 | 8 | 1;
         }
@@ -634,12 +634,12 @@ long vm_area_pagefault(struct exec_context *current, u64 addr, int error_code)
         u64* pmd = (u64*)osmap(pud_t>>12);
         u64 pmd_t = *(pmd+pmd_offset);
         if ((pmd_t&1 )== 0){ //present bit is 0
-            printk("entering pmd\n");
+            // printk("entering pmd\n");
             u64 pfn =(u64) os_pfn_alloc(OS_PT_REG);
             if (pfn == 0){
                 return -1;
             }
-            printk("the pfn in pmd allocate is %x\n", pfn);
+            // printk("the pfn in pmd allocate is %x\n", pfn);
             pmd_t = (pfn << 12)|(pmd_t & 0xFFF);
             pmd_t = pmd_t | 16 | 8 | 1;
         }
@@ -647,12 +647,12 @@ long vm_area_pagefault(struct exec_context *current, u64 addr, int error_code)
         u64* pte =(u64*)osmap(pmd_t>>12);
         u64 pte_t = *(pte+pte_offset);
         if ((pte_t&1) == 0){ //present bit is 0
-            printk("entering pte\n");
+            // printk("entering pte\n");
             u64 pfn = (u64) os_pfn_alloc(USER_REG); // this is the physical frame number storage type
             if (pfn == 0){
                 return -1;
             }
-            printk("the pfn in pte allocate is %x\n", pfn);
+            // printk("the pfn in pte allocate is %x\n", pfn);
             pte_t = (pfn << 12)|(pte_t & 0xFFF);
             pte_t = pte_t | 16 | 1;
         } 
@@ -660,8 +660,8 @@ long vm_area_pagefault(struct exec_context *current, u64 addr, int error_code)
             pte_t = pte_t | 8;
         }
         *(pte+pte_offset) = pte_t;
-        printk("pgd_t = %x, pud_t = %x, pmd_t = %x, pte_t = %x\n", pgd_t, pud_t, pmd_t, pte_t);
-        printk("pgd = %x, pud = %x, pmd = %x, pte = %x\n", pgd, pud, pmd, pte);
+        // printk("pgd_t = %x, pud_t = %x, pmd_t = %x, pte_t = %x\n", pgd_t, pud_t, pmd_t, pte_t);
+        // printk("pgd = %x, pud = %x, pmd = %x, pte = %x\n", pgd, pud, pmd, pte);
         return 1;
     }
     else if (error_code == 0x7){
@@ -687,7 +687,7 @@ long do_cfork(){
      * */   
      /*--------------------- Your code [start]---------------*/
      //copying all the members of parent's ctx to the child's ctx
-    printk("entered do_cfork\n");
+    // printk("entered do_cfork\n");
 
     new_ctx->type = ctx->type;
     new_ctx->used_mem = ctx->used_mem;
@@ -768,7 +768,7 @@ long do_cfork(){
         if (i== MM_SEG_STACK) end = new_ctx->mms[i].end;
         else end = new_ctx->mms[i].next_free;
         u64 access_flags = new_ctx->mms[i].access_flags;
-        printk("mms_i=%x,start = %x, end = %x, access_flags = %x\n",i, start, end, access_flags);
+        // printk("mms_i=%x,start = %x, end = %x, access_flags = %x\n",i, start, end, access_flags);
         for (u64 j = start; j < end; j+=PAGE_SIZE){
             u64* parent_pte_base = get_pte_base(ctx, j);
             if (parent_pte_base == NULL){
@@ -776,17 +776,17 @@ long do_cfork(){
             }
             u64 parent_pte_entry = *(parent_pte_base + ((j>>12)&0x1FF));
             if ((parent_pte_entry&1) == 1){ //present bit check
-            printk("allocating memory segment pte for %x and %x\n", i,j);
+            // printk("allocating memory segment pte for %x and %x\n", i,j);
             u64* pte_t=walk_to_pte_child(new_ctx, j);
             if (pte_t == NULL){
                 return -1;
             }
-            printk("pte_t = %x\n", pte_t);
+            // printk("pte_t = %x\n", pte_t);
             //pte_t should point to the same entry as the parent
             
             *pte_t = parent_pte_entry - (parent_pte_entry & 8); //only changing the 4th bit to read only no write acess.
             *(parent_pte_base + ((j>>12)&0x1FF))= *pte_t; //also changing the parent's pte 4th bit to read only no write acess.
-            printk("reference count of pfn %x is %d\n", (*pte_t)>>12, get_pfn_refcount((*pte_t)>>12));
+            // printk("reference count of pfn %x is %d\n", (*pte_t)>>12, get_pfn_refcount((*pte_t)>>12));
             get_pfn((*pte_t)>>12);
             }
         }
@@ -802,14 +802,14 @@ long do_cfork(){
             }
             u64 parent_pte_entry = *(parent_pte_base + ((i>>12)&0x1FF));
             if ((parent_pte_entry&1) == 1){ //present bit check
-                printk("allocating vm_area pte for %x\n", i);
+                // printk("allocating vm_area pte for %x\n", i);
                 u64* pte_t=walk_to_pte_child(new_ctx, i);
                 if (pte_t == NULL){
                     return -1;
                 }
                 *pte_t = parent_pte_entry - (parent_pte_entry & 8); //only changing the 4th bit to read only no write acess.
                 *(parent_pte_base + ((i>>12)&0x1FF))= *pte_t; //also changing the parent's pte 4th bit to read only no write acess.
-                printk("reference count of pfn %x is %d\n", (*pte_t)>>12, get_pfn_refcount((*pte_t)>>12));
+                // printk("reference count of pfn %x is %d\n", (*pte_t)>>12, get_pfn_refcount((*pte_t)>>12));
                 get_pfn((*pte_t)>>12);
             }
         }
@@ -839,7 +839,7 @@ long do_cfork(){
 long handle_cow_fault(struct exec_context *current, u64 vaddr, int access_flags)
 {
  // cow occurs when a process tries to write to a read only access page
-    printk("entered handle_cow_fault\n");
+    // printk("entered handle_cow_fault\n");
     //we already have the access flags of the vm_area to which  vaddr belongs
     //we have to check if the access flags of the vm_area is PROT_READ
     if (access_flags == PROT_READ){
